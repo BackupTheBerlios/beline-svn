@@ -1,0 +1,24 @@
+<?xml version="1.0">
+<!ELEMENT beline (conf)>
+<!ELEMENT conf (general | mod)>
+<!ELEMENT general (paths,run)>
+<!ELEMENT mod (name, version, author*, description?, run)>
+
+<!ELEMENT paths (modules*, path*)>
+<!ELEMENT path #CDATA>
+<!ELEMENT modules #NMTOKEN>
+
+<!ELEMENT name #NMTOKEN>
+<!ELEMENT version #NMTOKEN>
+<!ELEMENT author #CDATA>
+<!ELEMENT description #CDATA>
+<!ELEMENT run (prohibit*, pernament*, timeout?)>
+
+<!ELEMENT timeout #NMTOKEN>	<!-- doba v ms po které bude modul bez zprávy zrušen -->
+<!ELEMENT prohibit #CDATA>	<!-- uzivatel/prostredi, ktery ma zakazano spoustet -->
+<!ELEMENT exclusive #NMTOKEN>	<!-- číslo udávající maximální počet paralelně běžících procesů; 0=exkluzivita -->
+<!ELEMENT pernament #CDATA>	<!-- uzivatel/prostredi, u ktereho bezi stale -->
+
+<!ENTITY protocol "Beline">
+<!ENTITY version "0.1">
+<!ENTITY author "Kowy (kowy@centrum.cz)">
