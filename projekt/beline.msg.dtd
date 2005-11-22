@@ -4,7 +4,6 @@
 
 <!ELEMENT header (command, modulefrom, moduleto)>     <!-- prikazy Beline -->
 <!ELEMENT command (start |        <!-- spusti proces (a jeho funkcnost) -->
-                  stop |        <!-- nasilne zastavi proces -->
                   changestatus | <!-- uspani procesu -->
                   return |      <!-- obekt s namerenymi vysledky -->
                   status)       <!-- od mericiho modulu stav prubehu mereni -->
@@ -17,14 +16,18 @@
 <!ELEMENT stop>
 
 <!ELEMENT changestatus>
+<!ATTLIST changestatus newstatus (stop | sleep | awake) #REQUIRED>  
+                                                <!-- stop - nasilne ukonceni 
+                                                     sleep - docasne uspani
+                                                     awake - vzbudit -->
 
 <!ELEMENT return (value)
 <!ATTLIST return retval #REQUIRED>   <!-- navratovy status programu -->
-<!ELEMENT value (parameter)>          <!-- navratova hodnota -->
+<!ELEMENT value (parameter)>         <!-- navratova hodnota -->
 
 
-<!ELEMENT status                      <!-- status kolik je hotovo -->
-              (string)                <!-- cast vypisu -->                  
+<!ELEMENT status                     <!-- status kolik je hotovo -->
+              (string)               <!-- cast vypisu -->                  
 <!ATTLIST status done #REQUIRED>     <!-- procent hotovo -->
 
 <!ELEMENT modulefrom
