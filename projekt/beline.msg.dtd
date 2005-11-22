@@ -1,0 +1,49 @@
+<?xml version="1.0">
+<!ELEMENT beline (message)>
+<!ELEMENT message (header, params, retval)>
+
+<!ELEMENT header (command, modulefrom, moduleto)>     <!-- prikazy Beline -->
+<!ELEMENT command (start |        <!-- spusti proces (a jeho funkcnost) -->
+                  stop |        <!-- nasilne zastavi proces -->
+                  changestatus | <!-- uspani procesu -->
+                  return |      <!-- obekt s namerenymi vysledky -->
+                  status)       <!-- od mericiho modulu stav prubehu mereni -->
+
+<!ELEMENT start (parameter*)>
+<!ELEMENT parameter (string, bool, int, float, object)
+<!ATTLIST parameter name #REQUIRED
+                    type #REQUIRED>
+              
+<!ELEMENT stop>
+
+<!ELEMENT changestatus>
+
+<!ELEMENT return (value)
+<!ATTLIST return retval #REQUIRED>   <!-- navratovy status programu -->
+<!ELEMENT value (parameter)>          <!-- navratova hodnota -->
+
+
+<!ELEMENT status                      <!-- status kolik je hotovo -->
+              (string)                <!-- cast vypisu -->                  
+<!ATTLIST status done #REQUIRED>     <!-- procent hotovo -->
+
+<!ELEMENT modulefrom
+<!ATTLIST modulefrom name #REQUIRED>
+
+<!ELEMENT moduleto
+<!ATTLIST moduleto name #REQUIRED>
+
+<!ELEMENT func (message)>
+
+<!ELEMENT params (message)>
+
+<!ELEMENT retval (message)>
+
+<!ELEMENT string #CDATA>
+<!ELEMENT bool EMPTY>
+<!ATTLIST bool value (true | false) #REQUIRED>
+<!ELEMENT int EMPTY>
+<!ATTLIST int value (NMTOKEN) #REQUIRED>
+<!ELEMENT float EMPTY>
+<!ATTLIST int value (NMTOKEN) #REQUIRED>
+<!ELEMENT object (parameter+)>
