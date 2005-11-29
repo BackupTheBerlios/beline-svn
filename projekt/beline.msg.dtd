@@ -1,52 +1,73 @@
-<?xml version="1.0">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!ENTITY % TName "NMTOKEN">   <!-- typ nazev (viz. nazev v prog. jazycich) -->
+<!ENTITY % TPath "NMTOKEN">   <!-- cesta k souboru -->
+<!ENTITY % TCaption "CDATA">  <!-- kratky popisek (zahlavi, popisek tlacitka...) -->
+<!ENTITY % TNumber "NMTOKEN"> <!-- cele cislo -->
+<!ENTITY % TBool "(true | false)">  <!-- boolean hodnota -->
+<!ENTITY % TText "CDATA">     <!-- dlouhy text -->
+
+
 <!ELEMENT beline (message)>
-<!ELEMENT message (header, params, retval)>
+<!ATTLIST beline modulefrom %TName; #REQUIRED
+                 moduleto %TName; #REQUIRED>
+<!ELEMENT message (masters | slaves)>
 
-<!ELEMENT header (command, modulefrom, moduleto)>     <!-- prikazy Beline -->
-<!ELEMENT command (start |        <!-- spusti proces (a jeho funkcnost) -->
-                  changestatus | <!-- uspani procesu -->
-                  return |      <!-- obekt s namerenymi vysledky -->
-                  status)       <!-- od mericiho modulu stav prubehu mereni -->
+<!ELEMENT masters (alive | run | getstatus | stop | end)>     <!-- zpravy jdouci od mastera -->
 
-<!ELEMENT start (parameter*)>
-<!ELEMENT parameter (string, bool, int, float, object)
-<!ATTLIST parameter name #REQUIRED
-                    type #REQUIRED>
-              
-<!ELEMENT stop>
+<!ELEMENT alive (config*)>             <!-- oziveni/nakonfigurovani -->
+<!ELEMENT config (string, bool, int, float, object)>  <!-- konfiguracni parametry -->
+<!ATTLIST config name %TName; #REQUIRED>
+<!ELEMENT run (procedure, parameter*)>     <!-- spust tuto proceduru s temto parametry -->
+<!ELEMENT procedure EMPTY>
+<!ATTLIST procedure name %TName; #REQUIRED>     <!-- nazev procedury -->
+<!ELEMENT parameter (string, bool, int, float, object)>   <!-- parametr spustene procedury -->
+<!ATTLIST parameter name %TName; #REQUIRED>                       <!-- nazev parametru pro identifikaci -->
+<!ELEMENT getstatus EMPTY>                     <!-- vyzada si status prubehu -->
+<!ELEMENT stop EMPTY>                          <!-- ukonci beh procedury -->
+<!ELEMENT end EMPTY>                         <!-- ukonci se -->
 
-<!ELEMENT changestatus>
-<!ATTLIST changestatus newstatus (stop | sleep | awake) #REQUIRED>  
-                                                <!-- stop - nasilne ukonceni 
-                                                     sleep - docasne uspani
-                                                     awake - vzbudit -->
+<!ELEMENT slaves (status | return | question)>    <!-- zpravy od slejva-->
+<!ELEMENT status (notice)>                   <!-- zprava o stavu (kolik procent je hotovo) -->
+<!ATTLIST status percent NMTOKEN #REQUIRED>      <!-- procent hotovo (nesmi byt vetsi nez 100) -->
+<!ELEMENT notice (#PCDATA)>               <!-- retezec s castecnym nebo uplnym vystupem -->
 
-<!ELEMENT return (value)
-<!ATTLIST return retval #REQUIRED>   <!-- navratovy status programu -->
-<!ELEMENT value (parameter)>         <!-- navratova hodnota -->
+<!ELEMENT return (value*)>
+<!ATTLIST return status (%TNumber;) #REQUIRED>      <!-- status (#? v Bashi) posledniho provedeneho prikazu -->
+<!ELEMENT value (string | bool | int | float | object)>
+<!ATTLIST value name %TName; #REQUIRED>  <!-- jmeno prvku -->
+<!ATTLIST value description %TText; #REQUIRED>   <!-- popis, ktery se zobrazi -->
+<!ATTLIST value hint %TText; #IMPLIED>          <!-- bublinkova napoveda -->
+<!ATTLIST value icon %TPath; #IMPLIED>          <!-- cesta k ikonce -->
+<!ATTLIST value units NMTOKEN #IMPLIED>       <!-- jednotky SI soustavy -->
+<!ATTLIST value SImultip (Y | Z | E | P | T | G | M | k | h | da | d | c | m | _ | n | p | f | a | z | y ) #IMPLIED>  <!-- nasobitele SI soustavy - http://converter.misto.cz/_MAIL_/j_nasob.htm -->
 
+<!ELEMENT question (string | dialog | dialogyesno | dialoginfo)>      <!-- cast vypisu | dialogove okno s dotazem -->
 
-<!ELEMENT status                     <!-- status kolik je hotovo -->
-              (string)               <!-- cast vypisu -->                  
-<!ATTLIST status done #REQUIRED>     <!-- procent hotovo -->
+<!ELEMENT dialogyesno (string)>       <!-- zobrazi dialog ano/ne s uvedenou otazkou -->
+<!ELEMENT dialoginfo (string)>        <!-- zobrazi dialog s informaci a tlacitkem OK -->
+<!ATTLIST dialoginfo severity (info | warn | error) "info">   <!-- zavaznost informace -->  
 
-<!ELEMENT modulefrom
-<!ATTLIST modulefrom name #REQUIRED>
+<!ELEMENT dialog (string, button*)>
+<!ATTLIST dialog name %TName; #REQUIRED
+                 title %TCaption; #REQUIRED>
+<!ELEMENT button (#PCDATA)>
+<!ATTLIST button name %TName; #REQUIRED
+                 type (yes | no | OK | cancel |userbtn) #REQUIRED
+                 caption %TCaption; #IMPLIED>        <!-- pouze pro typ user -->
 
-<!ELEMENT moduleto
-<!ATTLIST moduleto name #REQUIRED>
+<!ELEMENT userbtn EMPTY>
+<!ATTLIST userbtn caption %TCaption; #REQUIRED
+                  icon %TPath; #IMPLIED>                 <!-- cesta k ikonce -->       
 
-<!ELEMENT func (message)>
-
-<!ELEMENT params (message)>
-
-<!ELEMENT retval (message)>
-
-<!ELEMENT string #CDATA>
+<!ELEMENT string (#PCDATA)>
+<!ATTLIST string size %TNumber; "0">              <!-- delka vlozeneho retezce -->
 <!ELEMENT bool EMPTY>
-<!ATTLIST bool value (true | false) #REQUIRED>
+<!ATTLIST bool value %TBool; #REQUIRED>
 <!ELEMENT int EMPTY>
-<!ATTLIST int value (NMTOKEN) #REQUIRED>
+<!ATTLIST int value (%TNumber;) #REQUIRED>
 <!ELEMENT float EMPTY>
-<!ATTLIST int value (NMTOKEN) #REQUIRED>
+<!ATTLIST float value (NMTOKEN) #REQUIRED>
 <!ELEMENT object (parameter+)>
+
+
+
