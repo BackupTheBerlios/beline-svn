@@ -1,45 +1,48 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!ENTITY % TName "NMTOKEN">   <!-- typ nazev (viz. nazev v prog. jazycich) -->
+<!ENTITY % TCode "NMTOKEN">   <!-- typ jednotuchy kod na par znaku -->
 <!ENTITY % TPath "NMTOKEN">   <!-- cesta k souboru -->
-<!ENTITY % TCaption "CDATA">  <!-- kratky popisek (zahlavi, popisek tlacitka...) -->
+<!ENTITY % TCaption "#PCDATA">  <!-- kratky popisek (zahlavi, popisek tlacitka...) -->
 <!ENTITY % TNumber "NMTOKEN"> <!-- cele cislo -->
 <!ENTITY % TBool "(true | false)">  <!-- boolean hodnota -->
 <!ENTITY % TText "CDATA">     <!-- dlouhy text -->
-
+<!ENTITY % TElementText "#PCDATA">     <!-- dlouhy text v elementu -->
 
 <!ELEMENT beline (message)>
-<!ATTLIST beline modulefrom %TName; #REQUIRED
-                 moduleto %TName; #REQUIRED>
 <!ELEMENT message (masters | slaves)>
+<!ATTLIST message modulefrom %TName; #REQUIRED
+                  moduleto %TName; #REQUIRED>
 
 <!ELEMENT masters (alive | run | getstatus | stop | end)>     <!-- zpravy jdouci od mastera -->
 
-<!ELEMENT alive (config*)>             <!-- oziveni/nakonfigurovani -->
-<!ELEMENT config (string, bool, int, float, object)>  <!-- konfiguracni parametry -->
-<!ATTLIST config name %TName; #REQUIRED>
+<!ELEMENT alive (configitem*)>             <!-- oziveni/nakonfigurovani -->
+<!ELEMENT configitem (string | bool | int | float | object)>  <!-- konfiguracni parametry -->
+<!ATTLIST configitem name %TName; #REQUIRED>
 <!ELEMENT run (procedure, parameter*)>     <!-- spust tuto proceduru s temto parametry -->
 <!ELEMENT procedure EMPTY>
 <!ATTLIST procedure name %TName; #REQUIRED>     <!-- nazev procedury -->
-<!ELEMENT parameter (string, bool, int, float, object)>   <!-- parametr spustene procedury -->
+<!ELEMENT parameter (string | bool | int | float | object)>   <!-- parametr spustene procedury -->
 <!ATTLIST parameter name %TName; #REQUIRED>                       <!-- nazev parametru pro identifikaci -->
 <!ELEMENT getstatus EMPTY>                     <!-- vyzada si status prubehu -->
-<!ELEMENT stop EMPTY>                          <!-- ukonci beh procedury -->
+<!ELEMENT stop EMPTY>                          <!-- ukonci aktualne bezici proceduru -->
 <!ELEMENT end EMPTY>                         <!-- ukonci se -->
 
 <!ELEMENT slaves (status | return | question)>    <!-- zpravy od slejva-->
 <!ELEMENT status (notice)>                   <!-- zprava o stavu (kolik procent je hotovo) -->
 <!ATTLIST status percent NMTOKEN #REQUIRED>      <!-- procent hotovo (nesmi byt vetsi nez 100) -->
-<!ELEMENT notice (#PCDATA)>               <!-- retezec s castecnym nebo uplnym vystupem -->
+<!ELEMENT notice (%TElementText;)>               <!-- retezec s castecnym nebo uplnym vystupem -->
 
-<!ELEMENT return (value*)>
+<!ELEMENT return (retval*)>
 <!ATTLIST return status (%TNumber;) #REQUIRED>      <!-- status (#? v Bashi) posledniho provedeneho prikazu -->
-<!ELEMENT value (string | bool | int | float | object)>
-<!ATTLIST value name %TName; #REQUIRED>  <!-- jmeno prvku -->
-<!ATTLIST value description %TText; #REQUIRED>   <!-- popis, ktery se zobrazi -->
-<!ATTLIST value hint %TText; #IMPLIED>          <!-- bublinkova napoveda -->
-<!ATTLIST value icon %TPath; #IMPLIED>          <!-- cesta k ikonce -->
-<!ATTLIST value units NMTOKEN #IMPLIED>       <!-- jednotky SI soustavy -->
-<!ATTLIST value SImultip (Y | Z | E | P | T | G | M | k | h | da | d | c | m | _ | n | p | f | a | z | y ) #IMPLIED>  <!-- nasobitele SI soustavy - http://converter.misto.cz/_MAIL_/j_nasob.htm -->
+<!ELEMENT retval (description, hint?, icon?, units?, SImultip?, value)>
+<!ATTLIST retval name %TName; #REQUIRED>  <!-- jmeno prvku -->
+<!ELEMENT description (%TElementText;)>   <!-- popis, ktery se zobrazi -->
+<!ELEMENT hint (%TElementText;)>          <!-- bublinkova napoveda -->
+<!ELEMENT icon (%TPath;)>          <!-- cesta k ikonce -->
+<!ELEMENT units (NMTOKEN)>       <!-- jednotky SI soustavy -->
+<!ELEMENT SImultip (Y | Z | E | P | T | G | M | k | h | da | d | c | m | _ | n | p | f | a | z | y )>  <!-- nasobitele SI soustavy - http://converter.misto.cz/_MAIL_/j_nasob.htm -->
+
+<!ELEMENT value (string | bool | int | float | object)>   <!-- hodnota v jednotkach uvedenych vyse -->
 
 <!ELEMENT question (string | dialog | dialogyesno | dialoginfo)>      <!-- cast vypisu | dialogove okno s dotazem -->
 
@@ -47,20 +50,21 @@
 <!ELEMENT dialoginfo (string)>        <!-- zobrazi dialog s informaci a tlacitkem OK -->
 <!ATTLIST dialoginfo severity (info | warn | error) "info">   <!-- zavaznost informace -->  
 
-<!ELEMENT dialog (string, button*)>
-<!ATTLIST dialog name %TName; #REQUIRED
-                 title %TCaption; #REQUIRED>
-<!ELEMENT button (#PCDATA)>
+<!ELEMENT dialog (caption, string, button*)>  <!-- obecny dialog -->
+<!ATTLIST dialog name %TName; #REQUIRED>    <!-- nazev dialogu -->
+<!ELEMENT button (caption)>
 <!ATTLIST button name %TName; #REQUIRED
-                 type (yes | no | OK | cancel |userbtn) #REQUIRED
-                 caption %TCaption; #IMPLIED>        <!-- pouze pro typ user -->
+                 type (yes | no | OK | cancel |userbtn) #REQUIRED>
 
-<!ELEMENT userbtn EMPTY>
-<!ATTLIST userbtn caption %TCaption; #REQUIRED
-                  icon %TPath; #IMPLIED>                 <!-- cesta k ikonce -->       
+<!ELEMENT userbtn (caption)>
+<!ATTLIST userbtn icon %TPath; #IMPLIED>                 <!-- cesta k ikonce -->       
 
-<!ELEMENT string (#PCDATA)>
-<!ATTLIST string size %TNumber; "0">              <!-- delka vlozeneho retezce -->
+<!ELEMENT caption (%TCaption;)>        <!-- zahlavi dialogu -->
+
+<!ELEMENT string (text+)>
+<!ELEMENT text (%TElementText;)>
+<!ATTLIST text lang %TCode; "cz">               <!-- jazyk, v jakem je retezec napsan (je tedy mozno prenaset vice jazykovych mutaci textu)-->
+<!ATTLIST text size %TNumber; "0">              <!-- delka vlozeneho retezce -->
 <!ELEMENT bool EMPTY>
 <!ATTLIST bool value %TBool; #REQUIRED>
 <!ELEMENT int EMPTY>
@@ -69,5 +73,7 @@
 <!ATTLIST float value (NMTOKEN) #REQUIRED>
 <!ELEMENT object (parameter+)>
 
-
+<!ENTITY protocol "Beline message">
+<!ENTITY version "0.1.0">
+<!ENTITY author "Kowy (kowy@centrum.cz)">
 
