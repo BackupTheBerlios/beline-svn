@@ -19,7 +19,7 @@
 <!ELEMENT modules (NMTOKEN)>
 
 <!ELEMENT author (%TName;)>
-<!ELEMENT description (%TElementText;)>
+<!ELEMENT description (string)>
 <!ELEMENT run (prohibit*, pernament*, timeout?)>
 
 <!ELEMENT timeout (%TNumber;)>	<!-- doba v ms po které bude modul bez zprávy zrušen -->
@@ -30,9 +30,9 @@
 <!ELEMENT user EMPTY>         <!-- definice uzivatele/prostredi -->
 <!ATTLIST user name (%TName;) #REQUIRED>
 
-<!ELEMENT string (text+)>
+<!ELEMENT string (text+)>     <!-- retezec s podporou vice jazyku -->
 <!ELEMENT text (%TElementText;)>
-<!ATTLIST text lang %TCode; "cz">               <!-- jazyk, v jakem je retezec napsan (je tedy mozno prenaset vice jazykovych mutaci textu)-->
+<!ATTLIST text lang %TCode; "en">               <!-- jazyk, v jakem je retezec napsan (je tedy mozno prenaset vice jazykovych mutaci textu)-->
 <!ATTLIST text size %TNumber; "0">              <!-- delka vlozeneho retezce -->
 
 <!ENTITY protocol "Beline config">
