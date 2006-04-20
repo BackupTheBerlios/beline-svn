@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!ENTITY % TName "NMTOKEN">   <!-- typ nazev (viz. nazev v prog. jazycich) -->
+<!ENTITY % TCode "NMTOKEN">   <!-- typ jednotuchy kod na par znaku -->
+<!ENTITY % TPath "NMTOKEN">   <!-- cesta k souboru -->
+<!ENTITY % TCaption "#PCDATA">  <!-- kratky popisek (zahlavi, popisek tlacitka...) -->
+<!ENTITY % TNumber "NMTOKEN"> <!-- cele cislo -->
+<!ENTITY % TBool "(true | false)">  <!-- boolean hodnota -->
+<!ENTITY % TText "CDATA">     <!-- dlouhy text -->
+<!ENTITY % TElementText "#PCDATA">     <!-- dlouhy text v elementu -->
+
+<!ELEMENT beline (message)>
+<!ELEMENT message (masters | slaves)>
+<!ATTLIST message modulefrom %TName; #REQUIRED
+                  moduleto %TName; #REQUIRED>
+
+<!ELEMENT masters (alive | run | getstatus | stop | end)>     <!-- zpravy jdouci od mastera -->
+
+<!ELEMENT alive (string* | bool* | int* | float* | object*)>   <!-- oziveni/nakonfigurovani - muze obsahovat konfiguracni polozky -->
+<!ELEMENT run (string* | bool* | int* | float* | object*)>     <!-- spust tuto proceduru s temto parametry - obsahuje nazev metody ke spusteni a seznam parametru -->
+<!ATTLIST run procedure (%TName;) #REQUIRED>
+<!ELEMENT getstatus EMPTY>                     <!-- vyzada si status prubehu -->
+<!ELEMENT stop EMPTY>                          <!-- ukonci aktualne bezici proceduru -->
+<!ELEMENT end EMPTY>                         <!-- ukonci se -->
+
+<!ELEMENT slaves (status | return | question)>    <!-- zpravy od slejva-->   
+<!ELEMENT status (notice)>                   <!-- zprava o stavu (kolik procent je hotovo) -->
+<!ATTLIST status percent NMTOKEN #REQUIRED>      <!-- procent hotovo (nesmi byt vetsi nez 100) -->
+<!ELEMENT notice (%TElementText;)>               <!-- retezec s castecnym nebo uplnym vystupem -->
+
+<!ELEMENT return (retval*)>
+<!ATTLIST return status %TNumber; #REQUIRED>      <!-- status (#? v Bashi) posledniho provedeneho prikazu -->
+<!ELEMENT retval (value, hint?, icon?)>
+<!ATTLIST retval name %TName; #REQUIRED>  <!-- jmeno prvku -->
+<!ATTLIST retval description %TName; #REQUIRED> <!-- popis k prvku -->
+<!ELEMENT hint (%TElementText;)>          <!-- bublinkova napoveda -->
+<!ELEMENT icon (%TPath;)>          <!-- cesta k ikonce -->
+
+<!ELEMENT value (string | bool | int | float | object)>   <!-- hodnota v jednotkach uvedenych vyse -->
+
+<!ELEMENT question (string | dialog | dialogyesno | dialoginfo)>      <!-- cast vypisu | dialogove okno s dotazem -->
+
+<!ELEMENT dialogyesno (string)>       <!-- zobrazi dialog ano/ne s uvedenou otazkou -->
+<!ELEMENT dialoginfo (string)>        <!-- zobrazi dialog s informaci a tlacitkem OK -->
+<!ATTLIST dialoginfo severity (info | warn | error) "info">   <!-- zavaznost informace -->  
+
+<!ELEMENT dialog (caption, string, button*)>  <!-- obecny dialog -->
+<!ATTLIST dialog name %TName; #REQUIRED>    <!-- nazev dialogu -->
+<!ELEMENT button (caption)>
+<!ATTLIST button name %TName; #REQUIRED
+                 type (yes | no | OK | cancel |userbtn) #REQUIRED>
+
+<!ELEMENT userbtn (caption)>
+<!ATTLIST userbtn icon %TPath; #IMPLIED>                 <!-- cesta k ikonce -->       
+
+<!ELEMENT caption (%TCaption;)>        <!-- zahlavi dialogu -->
+
+<!ELEMENT string (text+)>
+<!ATTLIST string name %TName; #IMPLIED>
+<!ELEMENT text (%TElementText;)>
+<!ATTLIST text lang %TCode; "cz">               <!-- jazyk, v jakem je retezec napsan (je tedy mozno prenaset vice jazykovych mutaci textu)-->
+<!ATTLIST text size %TNumber; "0">              <!-- delka vlozeneho retezce -->
+<!ELEMENT bool EMPTY>
+<!ATTLIST bool name %TName; #IMPLIED>
+<!ATTLIST bool value %TBool; #REQUIRED>
+<!ELEMENT int EMPTY>
+<!ATTLIST int name %TName; #IMPLIED>
+<!ATTLIST int value %TNumber; #REQUIRED>
+<!ELEMENT float EMPTY>
+<!ATTLIST float name %TName; #IMPLIED>
+<!ATTLIST float value NMTOKEN #REQUIRED>
+<!ELEMENT version EMPTY>
+<!ATTLIST version name %TName; #IMPLIED>
+<!ATTLIST version value %TNumber; #REQUIRED>
+<!ELEMENT object (string+ | bool+ | int+ | float+ | object+)>
+<!ATTLIST object name %TName; #IMPLIED>
+
+<!ENTITY protocol "Beline message">
+<!ENTITY version "0.1.0">
+<!ENTITY author "Kowy (kowy@centrum.cz)">
+

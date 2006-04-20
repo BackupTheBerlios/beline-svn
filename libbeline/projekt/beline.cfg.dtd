@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!ENTITY % TName "NMTOKEN">   <!-- typ nazev (pro nazvy polozek) -->
+<!ENTITY % TCode "NMTOKEN">   <!-- typ jednotuchy kod na par znaku -->
+<!ENTITY % TPath "NMTOKEN">   <!-- typ cesta k souboru -->
+<!ENTITY % TNumber "NMTOKEN"> <!-- cele cislo -->
+<!ENTITY % TBool "(true | false)">  <!-- boolean hodnota -->
+<!ENTITY % TText "CDATA">     <!-- dlouhy text -->
+<!ENTITY % TElementText "#PCDATA">     <!-- dlouhy text v elementu -->
+
+<!ELEMENT beline (conf)>
+<!ELEMENT conf (general | module)>
+<!ELEMENT general (paths, run)>
+<!ELEMENT module (version, author*, description?, run)>
+<!ATTLIST module name (%TName;) #REQUIRED>     <!-- unikatni nazev modulu -->
+<!ATTLIST module version (NMTOKEN) #REQUIRED>  <!-- verze modulu -->
+
+<!ELEMENT paths (modules*, path*)>
+<!ELEMENT path (%TPath;)>
+<!ELEMENT modules (NMTOKEN)>
+
+<!ELEMENT author (%TName;)>
+<!ELEMENT description (string)>
+<!ELEMENT run (prohibit*, pernament*, timeout?)>
+
+<!ELEMENT timeout (%TNumber;)>	<!-- doba v ms po které bude modul bez zprávy zrušen -->
+<!ELEMENT prohibit (user*)>	<!-- uzivatel/prostredi, ktery ma zakazano spoustet -->
+<!ELEMENT exclusive (%TNumber;)>	<!-- číslo udávající maximální počet paralelně běžících procesů; 0=exkluzivita -->
+<!ELEMENT pernament (user* | ALL)>	<!-- uzivatel/prostredi, u ktereho bezi stale -->
+
+<!ELEMENT user EMPTY>         <!-- definice uzivatele/prostredi -->
+<!ATTLIST user name (%TName;) #REQUIRED>
+
+<!ELEMENT string (text+)>     <!-- retezec s podporou vice jazyku -->
+<!ELEMENT text (%TElementText;)>
+<!ATTLIST text lang %TCode; "en">               <!-- jazyk, v jakem je retezec napsan (je tedy mozno prenaset vice jazykovych mutaci textu)-->
+<!ATTLIST text size %TNumber; "0">              <!-- delka vlozeneho retezce -->
+
+<!ENTITY protocol "Beline config">
+<!ENTITY version "0.1.0">
+<!ENTITY author "Kowy (kowy@centrum.cz)">

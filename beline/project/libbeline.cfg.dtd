@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!ENTITY % TName "NMTOKEN">   <!-- typ nazev (pro nazvy polozek) -->
+<!ENTITY % TCode "NMTOKEN">   <!-- typ jednotuchy kod na par znaku -->
+<!ENTITY % TPath "CDATA">   <!-- typ cesta k souboru -->
+<!ENTITY % TNumber "NMTOKEN"> <!-- cele cislo -->
+<!ENTITY % TBool "(true | false)">  <!-- boolean hodnota -->
+<!ENTITY % TText "CDATA">     <!-- dlouhy text -->
+<!ENTITY % TElementText "(#PCDATA)">     <!-- dlouhy text v elementu -->
+
+<!ELEMENT beline (conf)>
+<!ELEMENT conf (general | module)>
+<!ELEMENT general (limit, paths)>
+<!ELEMENT module (author+, run, bus, private)>
+<!ATTLIST module name %TName; #REQUIRED>     <!-- unikatni nazev modulu -->
+<!ATTLIST module runcommand %TPath; #REQUIRED>  <!-- cesta k spustitelnemu souboru modulu -->
+<!ATTLIST module version NMTOKEN #REQUIRED>  <!-- verze modulu -->
+<!ATTLIST module description %TText; #IMPLIED> <!-- nepovinny popis -->
+
+<!ELEMENT limit EMPTY>
+<!ATTLIST limit maxmodulescount %TNumber; #REQUIRED>      <!-- maximalni pocet instanci -->
+<!ATTLIST limit maxtransactionscount %TNumber; #REQUIRED> <!-- maximalni pocet transakci -->
+<!ATTLIST limit defaulttimeout %TNumber; #REQUIRED>       <!-- prednastaveny timeout pro transakci -->
+
+<!ELEMENT paths (path*)>
+<!ATTLIST paths templates %TPath; #REQUIRED>          <!-- cesta k sablonam -->
+<!ATTLIST paths fifos %TPath; #IMPLIED>              <!-- cesta k pojmenovanym rouram (v BFifoManager) -->
+<!ELEMENT path (%TPath;)>                   <!-- obecna cesta -->
+<!ATTLIST path name %TName; #REQUIRED>
+<!ATTLIST path description %TText; #IMPLIED>
+<!ELEMENT modulepath EMPTY>      <!-- path for one project over module libBeline -->
+<!ATTLIST modulepath project %TName; #REQUIRED>     <!-- jmeno projektu pro nejz jsou zde uvedene cesty -->
+<!ATTLIST modulepath configfilename %TName; #REQUIRED>      <!-- jmeno konfiguracniho souboru (bude se hledat v lokalni i globalni ceste) -->
+
+<!ELEMENT author EMPTY>
+<!ATTLIST author name %TText; #REQUIRED>
+<!ATTLIST author email %TText; #REQUIRED>
+<!ELEMENT description (string)>
+<!ELEMENT run (prohibit*, pernament*, timeout?)>
+<!ATTLIST run timeout %TNumber; #IMPLIED>   	<!-- doba v ms po které bude modul bez zprávy zrušen -->
+<!ATTLIST run exclusive %TNumber; #REQUIRED>  <!-- číslo udávající maximální počet paralelně běžících procesů; 0=exkluzivita -->
+
+<!ELEMENT prohibit (user*)>	<!-- uzivatel/prostredi, ktery ma zakazano spoustet -->
+<!ELEMENT pernament (user* | ALL)>	<!-- uzivatel/prostredi, u ktereho bezi stale -->
+
+<!ELEMENT user EMPTY>         <!-- definice uzivatele/prostredi -->
+<!ATTLIST user name %TName; #REQUIRED>
+
+<!ELEMENT bus EMPTY>
+<!ATTLIST bus bustype %TName; "Fifo">  <!-- typ sbernice pro komunikaci mezi moduly -->
+
+<!ELEMENT private (fold*)>      <!-- zalozky v dialogu nastaveni -->
+<!ATTLIST private type (info | benchmark | setting) #IMPLIED>
+
+<!ELEMENT fold (heading+)>     <!-- privatni vetev, do ktere se pridavaji uzivatelske konfigurace (stejna jako vetev /beline/mesage/masters/alive) -->
+<!ATTLIST fold label %TText; #REQUIRED>
+<!ATTLIST fold hint %TName; #IMPLIED>
+<!ELEMENT heading (bcfgitem+)>
+<!ATTLIST heading text %TText; #REQUIRED>
+
+<!ELEMENT bcfgitem (string | int | bool | select)>    <!-- jedna polozka uzivatelskeho konfiguracniho souboru; je zde ulozena hodnota (element potomek - obsahuje i nazev), kratka napoveda (hint) a URL komplexni napovedy-->
+<!ATTLIST bcfgitem label %TText; #REQUIRED>
+<!ATTLIST bcfgitem level %TNumber; #REQUIRED>   <!-- uroven 0-pro zacatecniky 1-pro experty -->
+<!ATTLIST bcfgitem hint %TText; #IMPLIED>       <!-- kratka napoveda s podporou vice jazyku -->
+<!ATTLIST bcfgitem helphtmllink %TText; #IMPLIED>     <!-- odkaz do "velke" napovedy -->
+
+<!ELEMENT string EMPTY>                         <!-- zobrazi editbox -->
+<!ATTLIST string value %TName; #IMPLIED>
+<!ELEMENT bool EMPTY>
+<!ATTLIST bool value %TBool; #IMPLIED>
+<!ELEMENT int EMPTY>
+<!ATTLIST int minimum %TNumber; #REQUIRED>
+<!ATTLIST int maximum %TNumber; #REQUIRED>
+<!ATTLIST int step %TNumber; #REQUIRED>
+<!ATTLIST int value %TNumber; #IMPLIED>
+<!ELEMENT select (option*)>
+<!ATTLIST select selected %TNumber; #REQUIRED>	<!-- kolikaty z uvedenych selectu je vybrany (indexovano od 0) -->
+<!ELEMENT option EMPTY>
+<!ATTLIST option text %TText; #REQUIRED>
+<!ATTLIST option value %Name; #REQUIRED>
+
+<!ELEMENT float EMPTY>
+<!ATTLIST float name %TName; #IMPLIED>
+<!ATTLIST float value NMTOKEN #REQUIRED>
+<!ELEMENT version EMPTY>
+<!ATTLIST version name %TName; #IMPLIED>
+<!ATTLIST version value %TNumber; #REQUIRED>
+<!ELEMENT object (string+ | bool+ | int+ | float+ | object+)>
+<!ATTLIST object name %TName; #IMPLIED>
+
+<!ENTITY protocol "Beline config">
+<!ENTITY version "0.1.0">
+<!ENTITY author "Kowy (kowy@centrum.cz)">
