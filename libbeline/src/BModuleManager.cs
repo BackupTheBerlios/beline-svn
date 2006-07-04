@@ -31,6 +31,7 @@ namespace LibBeline {
 	  }
 	  
 	  ///Start new transaction of module if it is possible
+	  ///<param name="aOID">Module's OID</param>
 	  public BTransactionItem Start (string aOID)
 	  {
 	    if (transactions.Count == transactionsCapacity) throw new Exception ("Maximum running transactions reached!");
@@ -43,13 +44,13 @@ namespace LibBeline {
 	    XmlNode config;
 	    try
 	    {
-	      config = module.GetConfig().GetXmlNode("/beline/conf/module/private");
+	      config = module.GetConfig().GetXmlNode("/beline/conf/module/configuration");
 	      // if this is not Xml element, configuration file is bad
 	      if (config.NodeType != XmlNodeType.Element) throw new Exception();
 	    }
 	    catch (Exception)
 	    {
-	      throw new Exception("Error in configuration file. It does't contain \"/beline/conf/module/private\" branch");
+	      throw new Exception("Error in configuration file. It does't contain \"/beline/conf/module/configuration\" branch");
 	    }
 	    
 	    ArrayList configItems = new ArrayList(config.ChildNodes.Count);
@@ -82,7 +83,8 @@ namespace LibBeline {
       
       if (transaction == null) return;  // no transaction found => nothing to do
       
-      transaction.Sleep(0);
+      transaction.Destroy();
+      transactions.Remove(aOID);
 	  }
 	  
 	  ///
@@ -114,12 +116,14 @@ namespace LibBeline {
       transaction.Awake();
 	  }
 	  
-	  // 
+	  /// Run procedure with given parameters on a transaction with given OID
+	  /// <param name="aOID">Transaction's OID</param>
+	  /// <param name="aProcedure">Name of runned procedure</param>
+	  /// <param name="aParameters">Array of parameters to run</param>
 	  public void Run (string aOID, string aProcedure, ArrayList aParameters)
 	  {
       // find instance of transaction
       BTransactionItem transaction = transactions[aOID] as BTransactionItem;
-      
       if (transaction == null) return;  // no transaction found => nothing to do
       
       transaction.Restart(aProcedure, aParameters);
@@ -152,7 +156,21 @@ namespace LibBeline {
 	  {
 	    return modManager.GetModuleList();
 	  }
-	  
+
+    // Return array of all transactions
+    public BTransactionItem[] GetAllTransactions()
+    {
+      BTransactionItem[] retval = new BTransactionItem[transactions.Count];
+      int i=0;
+      foreach (DictionaryEntry transaction in transactions)
+      {
+        retval[i++] = (BTransactionItem)transaction.Value;
+      }
+      //transactions.CopyTo(retval, 0);
+      
+      return retval; 
+    }
+    
 	  // 
 	  public BMessage GetResult ()
 	  {
@@ -194,7 +212,7 @@ namespace LibBeline {
 	    int maxTransactionsCount;
       try
       { // read maximum count of modules from global configuration
-        maxTransactionsCount = Convert.ToInt32(globalConfig["/beline/conf/general/limit[maxtransactionscount]"].ToString());
+        maxTransactionsCount = Convert.ToInt32(globalConfig["/beline/conf/global/limit[@maxtransactionscount]"].ToString());
       }
       catch (Exception e)
       {
@@ -207,21 +225,12 @@ namespace LibBeline {
       // importing all modules
       try
       {
-//        XmlNode paths = globalConfig.GetXmlNode("/beline/conf/general/paths");
-        DirectoryInfo wayToModules = new DirectoryInfo("/etc/libbeline/modules");
+//        XmlNode paths = globalConfig.GetXmlNode("/beline/conf/global/paths");
+        DirectoryInfo wayToModules = new DirectoryInfo(BConfigManager.GlobalModulesPath);
         
         // import all module's through its configuration files
         foreach (FileInfo module in wayToModules.GetFiles("*.conf"))
         {
-//          if (module.NodeType != XmlNodeType.Element || module.LocalName.ToLower() != "modulepath") continue;
-//          // find only elements with local name "modulepath"
-//          XmlElement eModule = (XmlElement)module; 
-//         
-//          string name = eModule.GetAttribute("project");
-//          string file = eModule.GetAttribute("configfilename");
-//          // TODO melo by se logovat pomoci BLogManageru
-//          if (file == null || file == string.Empty) continue; // not specified config file, so no parsing
-          
           modManager.ImportModule(module.Name);
         }
       }

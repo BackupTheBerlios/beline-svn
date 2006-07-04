@@ -5,50 +5,57 @@ using System.Collections;
 
 namespace LibBeline {
   /// Globální konfigurační manager
+  
+  /// <summary>
+  /// This manager stores configuration files in memory during running of libbeline. In fact this is a
+  /// container for BConfigItem elements that offer some extra functions over them.
+  /// </summary>
   public sealed class BConfigManager {
 
+    #region Attributes
+    /// <summary> Path to the global module configuration files </summary>
     public static string GlobalModulesPath
     {
-      get {return globalModulesPath;}
+      get {return Path.Combine(LibBeline.GlobalPath, "modules");}
     }
-    private static string globalModulesPath = "/etc/libbeline/modules";
+    /// <summary> Path to the local module configuration files </summary>
     public static string LocalModulesPath
     {
-      get {return localModulesPath; }
+      get {return Path.Combine(LibBeline.LocalPath, "modules");}
     }
-    private static string localModulesPath = "~/.libbeline/modules";
     
-    // Attributes
-    /// Globalni konfigurace (inicializovaná v metodě Initialize třídy LibBeline)
+    /// <summary>A global libbeline configuration (it is initialized in the method LibBeline.Initialize)</summary>
     public BConfigItem GlobalConf 
     { 
-      get { return globalConf  ; }
+      get { return globalConf; }
     }
     private BConfigItem globalConf;
-    /// Pole indexované OIDéčky; udržuje se kvůli bezpečnému promazání
+    /// <summary>Pole indexované OIDéčky; udržuje se kvůli bezpečnému promazání</summary>
     private Hashtable moduleConf;
     
-    /// Maximum count of configuration items (+1 for global configuration)
+    /// <summary>Maximum count of configuration items (+1 for global configuration)</summary>
     public int Capacity
     {
       get {return capacity;}
     }
     int capacity;
+    #endregion
+
     /// 
     private static BConfigManager singletonInstance;
     
-    /// constructor
     private BConfigManager()
     {
       // create global configuration
-      globalConf = new BConfigItem("/etc/libbeline/global.conf");
+      globalConf = new BConfigItem(Path.Combine(LibBeline.GlobalPath, "global.conf"));
+      globalConf.ImportGlobalConfig(Path.Combine(LibBeline.LocalPath, "global.conf"));
       
       try
       {
-        BValueType str = (BValueType)globalConf["/beline/conf/general/limit[maxmodulescount]"];
+        BValueType str = (BValueType)globalConf["/beline/conf/global/limit[@maxmodulescount]"];
         capacity = Convert.ToInt32(str.ToString());
       }
-      catch (Exception e)
+      catch
       {
         capacity = 32;
       }
@@ -56,40 +63,41 @@ namespace LibBeline {
       moduleConf = new Hashtable(capacity);
     }
 
-    /// Load new module's configuration from global and then from local config file
+    /// <summary>Load new module's configuration from global and then from local config file</summary>
     public BConfigItem LoadModuleConfig (string aFileName)
     {
       if (moduleConf.Count == capacity) throw new Exception("Maximum count of configuration items reached.");
       
-      BConfigItem retval = new BConfigItem(Path.Combine("/etc/libbeline/modules",aFileName));
-      retval.LoadConfig(Path.Combine("~/.libbeline/modules", aFileName));
+      BConfigItem retval = new BConfigItem(Path.Combine(BConfigManager.GlobalModulesPath,aFileName));
+      retval.ImportConfig(Path.Combine(BConfigManager.LocalModulesPath, aFileName));
       moduleConf.Add(retval.OID, retval);
       
       return retval;
     }
 
     ///<summary>Return configuration of module</summary>
-    ///<param aOID="Configuration item's OID. Should be obtained by BModuleItem.ConfigOID property." />
+    ///<param name="aOID">Configuration item's OID. Should be obtained by BModuleItem.ConfigOID property</param>
     public BConfigItem GetModuleConfig (string aOID)
     {
       return (BConfigItem)moduleConf[aOID];
     }
 
+    /// <summary>
+    /// Remove module's configuration from memory.
+    /// </summary>
+    /// <param name="aOID">Identification of configuration item.</param>
     public void FreeModuleConfig (string aOID)
     {
       moduleConf.Remove(aOID);
     }
 
-    public static string GenerateXPath (string aPath, string aLanguage)
-    {
-      throw new System.Exception ("Not implemented yet!");
-    }
-    // 
+    /// <summary>
+    /// Part of a singleton design pattern. Return an instance of the BConfigManager or if this instance doesn't
+    /// exist create it (within initialize global configuration item)
+    /// </summary>
+    /// <returns></returns>
     public static BConfigManager GetInstance ()
     {
-    	// no BConfigManager in slave instance of libBeline
-	    if (LibBeline.GetInstance().System == BEnumSystem.slave) return null;
-	
       if (singletonInstance == null)
       {
         singletonInstance = new BConfigManager();

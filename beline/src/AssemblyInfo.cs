@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTitle("Beline")]
 [assembly: AssemblyDescription(@"Systém pro kontrolu hardware.
 Vytvořeno jako diplomová práce v rámci studia na ČVUT FEL.")]
-[assembly: AssemblyConfiguration("0.0.1.0")]
+[assembly: AssemblyConfiguration("0.1.0.0")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
 [assembly: AssemblyCopyright("2006 Kovář David")]

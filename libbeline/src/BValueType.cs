@@ -2,19 +2,25 @@ using System;
 using System.Xml;
 
 namespace LibBeline {
-  /// Abstraktní třída zastřešující typy
+  /// <summary>Abstract class covering the whole hierarchy of B-types.</summary>
   public class BValueType {
-  
-    // Attributes
-    /// type of the object
+
+    /// <summary>Type of the object.</summary>
     protected BEnumType type;
     /// 
     protected string name;
+    /// <summary>
+    /// Name of the object (use when looking for or storing in XML configuration)
+    /// </summary>
     public string Name 
     {
       get { return name; }
     }
   
+    /// <summary>
+    /// Return type of object (overrided byl childs)
+    /// </summary>
+    /// <returns></returns>
     public virtual BEnumType GetBType ()
     {
       return type;
@@ -23,15 +29,24 @@ namespace LibBeline {
     // derived from Object
     // public abstract string ToString ();
   
-    protected BValueType (string aName, BEnumType aType)
+    /// <summary>
+    /// Create new instance used by children.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="type"></param>
+    protected BValueType (string name, BEnumType type)
     {
-      name = aName;
-      type = aType;
+      this.name = name;
+      this.type = type;
     }
     
+    /// <summary>
+    /// Actual deep in object hierarchy (in BObject)
+    /// </summary>
     public static int Deep = 0;
     
-    /// convert value of BValueType object (some of its children) to xml document
+    /// <summary>Convert value of BValueType object (some of its children) to xml document.</summary>
+    /// <param name="aValue">Value to serialize.</param>
     /// <exception>XmlException</exception>
     public static XmlNode Serialize(BValueType aValue)
     {
@@ -82,7 +97,8 @@ namespace LibBeline {
       return retval.DocumentElement;
     }
     
-    /// convert value serialized in XML to BValueType object (some of its children)
+    /// <summary>Convert value serialized in XML to BValueType object (some of its children)</summary>
+    /// <param name="aValue">Value to deserialize.</param>
     /// <exception>XmlException</exception>
     public static BValueType Deserialize(XmlNode aValue)
     {

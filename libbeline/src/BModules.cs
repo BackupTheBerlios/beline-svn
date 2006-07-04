@@ -47,8 +47,18 @@ namespace LibBeline {
       return tmpItem.OID;
     }
   
+    /// Unload module from memory
+    /// <param name="aOID">Module's OID</param>
     public void DisableModule (string aOID)
     {
+      // Stop all transactions
+      foreach (BTransactionItem transaction in BModuleManager.GetInstance().GetAllTransactions())
+      {
+        if (transaction.ModuleOID == aOID)
+          // it is transaction of this module, so stop it
+          transaction.Destroy();
+      }
+      
       modules.Remove(aOID);
     }
   
@@ -57,7 +67,7 @@ namespace LibBeline {
       int maxModulesCount;
       try
       { // read maximum count of modules from global configuration
-        maxModulesCount = Convert.ToInt32(BConfigManager.GetInstance().GlobalConf["/beline/conf/general/limit[maxmodulescount]"]);
+        maxModulesCount = Convert.ToInt32(BConfigManager.GetInstance().GlobalConf["/beline/conf/global/limit[@maxmodulescount]"]);
       }
       catch (Exception)
       {

@@ -1,21 +1,35 @@
 using System;
 
 namespace LibBeline {
-  /// Výčtový typ s použitými typy v XML zprávách
+  /// <summary>Enumeration of BValueType subtypes.</summary>
   public enum BEnumType {
-
-    // Attributes
+    /// <summary>
+    /// Null value.
+    /// </summary>
     BNull = 1,
-    /// Řetězce
+    /// <summary>
+    /// String value.
+    /// </summary>
     BString = 2,
-    /// Celé číslo
+    /// <summary>
+    /// Integer value.
+    /// </summary>
     BInteger = 3,
-    /// 
+    /// <summary>
+    /// Floating number value.
+    /// </summary>
     BFloat = 4,
-    /// 
+    /// <summary>
+    /// Boolean value.
+    /// </summary>
     BBool = 5,
-    /// Can represent XML document
+    /// <summary>
+    /// Structured object. Can represent XML configuration.
+    /// </summary>
     BObject = 6,
+    /// <summary>
+    /// Version in format x.y.z.w
+    /// </summary>
     BVersion = 7
   } // enum BEnumType
 } // namespace

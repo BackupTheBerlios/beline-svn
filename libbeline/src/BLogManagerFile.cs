@@ -2,10 +2,9 @@ using System;
 using System.IO;
 
 namespace LibBeline {
-  /// Zaloguje do souboru
+  /// <summary>Store messages to a file.</summary>
   public sealed class BLogManagerFile : BLogManager {
 
-    // Attributes
     /// Cesta k souboru, do kterého se loguje
     public string Path
     {
@@ -14,49 +13,73 @@ namespace LibBeline {
     private string path;
     
     private StreamWriter file;
-    // 
-    public BLogManagerFile (string aPath)
+    /// <summary>
+    /// Create new instance of log manager.
+    /// </summary>
+    /// <param name="aPath">The whole path to file storing messages.</param>
+    /// <param name="aMinimalLogLevel">Minimal level of logging messages (included) which will be logged.</param>
+    public BLogManagerFile (string aPath, BEnumLogLevel aMinimalLogLevel)
     {
       logManagerType = BEnumLogManagerType.File;
-      
-      // open file to
-      FileInfo fi = new FileInfo(aPath);
-      if (!fi.Exists) 
-        file = File.CreateText(aPath);
-      else
-        file = File.AppendText(aPath);
-       
-      file.AutoFlush = true;
+      minimalLogLevel = aMinimalLogLevel;
+      path = aPath;
     }
-    // 
-    public override void Log (string aMessage, BEnumLogLevel aLevel)
+    /// <summary>
+    /// Override. Overloaded. Write message to log.
+    /// </summary>
+    /// <param name="message">Message to write.</param>
+    /// <param name="level">Level of message.</param>
+    public override void Log (string message, BEnumLogLevel level)
     {
-      // TODO dodelej filtr logu
+      // if message's level is less then minimal wanted do not log it
+      if (level > minimalLogLevel) return;
 
-      string outputLine = String.Format("{0:D} {1}-{2}-{3}", DateTime.Now, 
-                                        Enum.GetName(aLevel.GetType(), aLevel), aMessage);
-      file.WriteLine(outputLine);
+      try
+      {
+        string outputLine = String.Format("{0:G} {1}-{2}", DateTime.Now, 
+                                          Enum.GetName(level.GetType(), level), message);
+
+        FileInfo fi = new FileInfo(path);
+        if (!fi.Exists) 
+          file = File.CreateText(path);
+        else
+          file = File.AppendText(path);
+
+        file.WriteLine(outputLine);
+        file.Close();
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine("Can't write to log file: {0}", e.Message);
+      }
     }
-    // 
-    public override void Log (Exception aException)
+    /// <summary>
+    /// Override. Overloaded. Write message to log as error event.
+    /// </summary>
+    /// <param name="exception">Exception to write.</param>
+    public override void Log (Exception exception)
     {
-      // TODO dodelej filtr logu
-      string outputLine = String.Format("{0:D} {1}-{2}-{3}", DateTime.Now,
-                                        Enum.GetName(typeof(BEnumLogLevel), BEnumLogLevel.ErrorEvent),
-                                        aException.Message);
-      file.WriteLine(outputLine);
-    }
-    
-    // 
-    public void Sync ()
-    {
-      file.Flush();
-    }
-    
-    // 
-    ~BLogManagerFile ()
-    {
-      file.Close();
+      // if message's level is less then minimal wanted do not log it
+      if (minimalLogLevel > BEnumLogLevel.ErrorEvent) return;
+
+      try
+      {
+        FileInfo fi = new FileInfo(path);
+        if (!fi.Exists) 
+          file = File.CreateText(path);
+        else
+          file = File.AppendText(path);
+        
+        string outputLine = String.Format("{0:G} {1}-{2}", DateTime.Now,
+                                          Enum.GetName(typeof(BEnumLogLevel), BEnumLogLevel.ErrorEvent),
+                                          exception.Message);
+        file.WriteLine(outputLine);
+        file.Close();
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine("Can't write to log file: {0}", e.Message);
+      }
     }
   } // class BLogManagerFile
 } // namespace

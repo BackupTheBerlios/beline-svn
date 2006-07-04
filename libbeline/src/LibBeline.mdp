@@ -63,5 +63,9 @@
     <File name="./Gui" subtype="Directory" buildaction="Compile" />
     <File name="./Gui/ModulePropertyDialog.cs" subtype="Code" buildaction="Compile" />
     <File name="./glade/dialogs.glade" subtype="Code" buildaction="EmbedAsResource" />
+    <File name="./Gui/Dialogs.cs" subtype="Code" buildaction="Compile" />
+    <File name="./BTemplates.cs" subtype="Code" buildaction="Compile" />
+    <File name="./Gui/GlobalPropertyDialog.cs" subtype="Code" buildaction="Compile" />
+    <File name="./Gui/PropertyDialog.cs" subtype="Code" buildaction="Compile" />
   </Contents>
 </Project>

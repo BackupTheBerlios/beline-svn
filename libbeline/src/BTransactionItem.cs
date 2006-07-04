@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Diagnostics;
-using Mono.Unix;
+//using Mono.Unix;
 
 namespace LibBeline {
   /// Keep informations about a status of transactions
@@ -58,21 +58,21 @@ namespace LibBeline {
       
       status = BEnumStatus.Idle;
       lastRunMessage = null;  // nothing was run
-      
+
       // get module configuration
-      BConfigItem configuration = BConfigManager.GetInstance().GetModuleConfig(aModule.OID);
+      BConfigItem configuration = BConfigManager.GetInstance().GetModuleConfig(aModule.ConfigOID);
       
       // set timeout
       try
       {
-        timeout = Convert.ToInt32(configuration["/beline/conf/module/run[timeout]"].ToString());
+        timeout = Convert.ToInt32(configuration["/beline/conf/module/run[@timeout]"].ToString());
       }
       catch (Exception)
       {
         try
         {
           timeout = Convert.ToInt32(BConfigManager.GetInstance().
-                                    GlobalConf["/beline/conf/general/limit[defaulttimeout]"].
+                                    GlobalConf["/beline/conf/global/limit[@defaulttimeout]"].
                                     ToString());
         }
         catch (Exception)
@@ -82,19 +82,43 @@ namespace LibBeline {
       }
       
       // create instance of module
-      string module = configuration["/beline/conf/module[runcommand]"].ToString();
+      string module = configuration["/beline/conf/module[@runcommand]"].ToString();
       FileInfo fi = new FileInfo(module);
       if (!fi.Exists)
-        throw new FileNotFoundException("File " + module + " not found.");     
+        throw new FileNotFoundException("File " + module + " not found.");    
+      
       moduleProcess = Process.Start(module);
       
-      // set instance of BusManager
-      busManager = BBusManagerFactory.CreateBusManager(this);
+      try
+      {
+        // set instance of BusManager
+        busManager = BBusManagerFactory.CreateBusManager(this);
+      }
+      catch (Exception)
+      { // can't continue => kill process
+        if (!moduleProcess.HasExited)
+          moduleProcess.Kill();
+        // notice user
+        throw;
+      }
       
-      // awake module
-      // TODO docasna adresa
+      // alive module
       BMessage message = BMessage.CreateAlive(aConfiguration);
       busManager.Send(message);
+      // wait until confirmation message arrive 
+      message = busManager.Receive(true);
+      if (message.Template != "status.msg") throw new Exception("Error in a communication. Module don't send acknowledgement");
+    
+      if (((BMessageStatus)message).Complete != 100)
+        // some error in parameters
+        throw new Exception("Module not initialized.\nError: " + ((BMessageStatus)message).Notice);
+    }
+    
+    /// Send common message to the transaction
+    public void SendMessage(BMessage aMessage)
+    {
+      busManager.Send(aMessage);
+      lastMsgTime = DateTime.Now;
     }
 
     /// switch to sleep status
@@ -104,7 +128,6 @@ namespace LibBeline {
       if (status == BEnumStatus.Sleep) return;
       
       // prepare message to module (realy stop running) and send
-      // TODO docasna adresa
       BMessage message = BMessage.CreateSimpleCommand("stop.msg");
       busManager.Send(message);
       
@@ -134,8 +157,7 @@ namespace LibBeline {
     public void Restart(string aProcedure, ArrayList aParameters)
     {
       BMessage message;
-      // only running modules can be restarted
-      if (status != BEnumStatus.Running) return;
+
       // if last procedure should be restarted and no message running => can't restart
       if (aProcedure==String.Empty)
       {
@@ -148,10 +170,9 @@ namespace LibBeline {
       {
         BValueType[] parameters = new BValueType[aParameters.Count];
         aParameters.CopyTo(parameters);
-        // TODO docasna adresa
+
         message = BMessage.CreateRun(aProcedure, parameters);
       }
-        
       // send run message
       busManager.Send(message);
       
@@ -160,23 +181,37 @@ namespace LibBeline {
       status = BEnumStatus.Running;
     }
     
-    /// Stop transaction 
-    ~BTransactionItem ()
+    /// try to get message from the net
+    /// <return>Message or null if not present</return>
+    public BMessage Receive()
     {
-      // TODO docasna adresa
+      return busManager.Receive(false);
+    }
+    
+    /// finish the transaction and kill the process
+    public void Destroy()
+    {
       BMessage message = BMessage.CreateSimpleCommand("end.msg");
       busManager.Send(message);
       
       // wait until acknowledgement arrive
       while (message.Template == "return.msg")
       {
-        message = busManager.Receive();
+        message = busManager.Receive(true);
       }
       
-      if (message.Parameters[2] != "0")
-        throw new Exception(message.Parameters[3]);
-      else
-        moduleProcess.Kill();
+      // dangerous if this thread is faster then module's
+//      if (message.Parameters[2] != "0")
+//        throw new Exception(message.Parameters[3]);
+//      else
+//        // if the message don't stop properly itself
+//        moduleProcess.Kill();
+    }
+    
+    /// Stop transaction 
+    ~BTransactionItem ()
+    {
+      Destroy();
     }
   } // class BTransactionItem
 } // namespace

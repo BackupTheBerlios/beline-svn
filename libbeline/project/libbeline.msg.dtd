@@ -33,15 +33,9 @@
 
 <!ELEMENT return (retval*)>
 <!ATTLIST return status (%TNumber;) #REQUIRED>      <!-- status (#? v Bashi) posledniho provedeneho prikazu -->
-<!ELEMENT retval (description, hint?, icon?, units?, SImultip?, value)>
-<!ATTLIST retval name %TName; #REQUIRED>  <!-- jmeno prvku -->
-<!ELEMENT description (%TElementText;)>   <!-- popis, ktery se zobrazi -->
-<!ELEMENT hint (%TElementText;)>          <!-- bublinkova napoveda -->
-<!ELEMENT icon (%TPath;)>          <!-- cesta k ikonce -->
-<!ELEMENT units (NMTOKEN)>       <!-- jednotky SI soustavy -->
-<!ELEMENT SImultip (Y | Z | E | P | T | G | M | k | h | da | d | c | m | _ | n | p | f | a | z | y )>  <!-- nasobitele SI soustavy - http://converter.misto.cz/_MAIL_/j_nasob.htm -->
-
-<!ELEMENT value (string | bool | int | float | object)>   <!-- hodnota v jednotkach uvedenych vyse -->
+<!-- tato cast je specificka pro projekt Beline, vramci libbeline se nikterak nezpracovava a muze byt libovolne menena... -->
+<!ELEMENT retval (EMPTY)>     <!-- jedna sekce ve vystupu -->
+<!-- ...konec specificke casti -->
 
 <!ELEMENT question (string | dialog | dialogyesno | dialoginfo)>      <!-- cast vypisu | dialogove okno s dotazem -->
 
@@ -75,4 +69,5 @@
 <!ENTITY protocol "Beline message">
 <!ENTITY version "0.1.0">
 <!ENTITY author "Kowy (kowy@centrum.cz)">
+
 

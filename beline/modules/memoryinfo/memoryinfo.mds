@@ -1,0 +1,16 @@
+<Combine name="memoryinfo" fileversion="2.0">
+  <Configurations>
+    <Configuration name="Debug" ctype="CombineConfiguration">
+      <Entry build="True" name="memoryinfo" />
+    </Configuration>
+    <Configuration name="Release" ctype="CombineConfiguration">
+      <Entry build="True" name="memoryinfo" />
+    </Configuration>
+  </Configurations>
+  <StartMode startupentry="memoryinfo" single="True">
+    <Execute type="None" entry="memoryinfo" />
+  </StartMode>
+  <Entries>
+    <Entry filename="./memoryinfo.mdp" />
+  </Entries>
+</Combine>

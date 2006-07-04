@@ -55,11 +55,11 @@ namespace Beline.Gui
   	  BConfigItem config = BConfigManager.GetInstance().GetModuleConfig(module.ConfigOID);
   	  
   	  string name="", version="", description="";
-  	  BValueType hodnota = config["/beline/conf/module[name]"];
+  	  BValueType hodnota = config["/beline/conf/module[@name]"];
   	  if (hodnota != null) name = hodnota.ToString();
-  	  hodnota = config["/beline/conf/module[version]"];
+  	  hodnota = config["/beline/conf/module[@version]"];
   	  if (hodnota != null) version = hodnota.ToString();
-  	  hodnota = config["/beline/conf/module[description]"];
+  	  hodnota = config["/beline/conf/module[@description]"];
   	  if (hodnota != null) description = hodnota.ToString();
   	  
   	  AboutWindow about = new AboutWindow();

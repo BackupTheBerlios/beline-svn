@@ -5,112 +5,24 @@ using System.Text;
 using System.Xml;
 
 namespace LibBeline {
-
-  // class read, cache and return templates of messages
-  internal sealed class BTemplates
-  {
-    /// it can cach maximum of 20 items
-    Hashtable cache;
-    private static BTemplates singletonInstance;
-    
-    private BTemplates()
-    {
-      cache = new Hashtable(20);
-    }
-    
-    public static BTemplates GetInstance()
-    {
-      // if this is first run (singleton not inicialized yet)
-      if (singletonInstance == null)
-        singletonInstance = new BTemplates();
-      
-      return singletonInstance;
-    }
-    
-    /// Read template file with given name and return its content as string 
-    public string ReadTemplate(string aFileName)
-    {
-      // first try to read from template
-      if (cache[aFileName] != null)
-        return cache[aFileName].ToString();
-        
-      // combine complete path found in a global configuration
-      string pathToTemplates = BConfigManager.GetInstance().GlobalConf["/beline/conf/general/paths[templates]"].ToString();
-      pathToTemplates = Path.Combine(pathToTemplates, aFileName);
-            
-      // read the whole file
-      StreamReader reader;
-      string retval;
-      try
-      {
-        reader = new StreamReader(pathToTemplates);
-      }
-      catch (DirectoryNotFoundException e)
-      {
-        throw new FileNotFoundException("File " + pathToTemplates + " not found.");
-      }
-      catch (FileNotFoundException e)
-      {
-        throw new FileNotFoundException("File " + pathToTemplates + " not found.");
-      }
-      catch (IOException e)
-      {
-        throw new FileNotFoundException("File " + pathToTemplates + " not found.");
-      }
-      catch (ArgumentNullException e)
-      {
-        throw new FileNotFoundException("File " + pathToTemplates + " not found.");
-      }
-      catch (ArgumentException e)
-      {
-        throw new FileNotFoundException("File " + pathToTemplates + " not found.");
-      }
-      
-      try
-      {
-        retval = reader.ReadToEnd();
-      }
-      catch (IOException e)
-      {
-        reader.Close();
-        throw;
-      }
-      catch (OutOfMemoryException e)
-      {
-        reader.Close();
-        throw;
-      }
-      
-      reader.Close();
-      
-      // cache template
-      cache.Add(aFileName, retval);
-      return retval;
-    }
-  }
-
-  /// Třída zapouzdřující zprávu přenášenou mezi klientem a serverem
-  public sealed class BMessage {
+  /// <summary>Třída zapouzdřující zprávu přenášenou mezi klientem a serverem</summary>
+  public class BMessage {
+    #region attributes
+    /// <summary>
     /// 
+    /// </summary>
     public BEnumCommands Command  
     {
       get { return command; }
     }
     private BEnumCommands command;
     
-    /// XML dokument s výsledkem resp. zadáním (definice tohoto souboru je specifické)
+    /// <summary>XML dokument s výsledkem resp. zadáním (definice tohoto souboru je specifické)</summary>
     public string Template
     {
       get { return template; }
     }
     private string template;
-    
-    /// Seznam parametrů, v případě v případě příkazu
-    public string[] Parameters
-    {
-      get { return parameters; }
-    }
-    private string[] parameters;
     
     /// <summary>Id of the sending module (format depends on type of Bus Manager)</summary>
     public string IdFrom
@@ -127,17 +39,20 @@ namespace LibBeline {
       set { idTo = value; }
     }
     string idTo;
-    
+    #endregion
     
     // class read, cache and return templates of messages
     //private BTemplates templates;
     
-    // create instance of a message
-    private BMessage(string aTemplate, string[] aParameters, BEnumCommands aCommand)
+    /// <summary>
+    /// Create instance of a message.
+    /// </summary>
+    /// <param name="template">Message's template</param>
+    /// <param name="command">Message's command</param>
+    protected BMessage(string template, BEnumCommands command)
     {
-      template = aTemplate;
-      parameters = aParameters;
-      command = aCommand;
+      this.template = template;
+      this.command = command;
     }
     
     /// Constructor make instance from string value (received from 
@@ -147,205 +62,498 @@ namespace LibBeline {
       XmlDocument xml = new XmlDocument();
       string messageFrom, messageTo;
       XmlElement element;   // working variable
-      XmlAttribute attribute; // working variable
-      string[] parameters;
-      string template;
+      BMessage retval;
       
-      // convert to Xml
+      // convert string representation to Xml
       xml.LoadXml(aXml);
       
       // show type of message
       element = xml["beline"];
       
+      // read basic informations
       if (element == null) throw new XmlException("Bad message format.");
       element = element["message"];
       if (element == null) throw new XmlException("Bad message format.");
-      attribute = element.Attributes["modulefrom"];
-      messageFrom = (attribute != null ? attribute.Value : "");
-      attribute = element.Attributes["moduleto"];
-      messageTo = (attribute != null ? attribute.Value : "");
+      messageFrom = element.GetAttribute("modulefrom");
+      messageTo = element.GetAttribute("moduleto");
       
       if (element["masters"] != null)
       { // message from master
         element = element["masters"];
         if (element["alive"] != null)
         { // alive message
-          element = element["alive"];
-          parameters = new string[1];
-          parameters[0] = "";
-          foreach (XmlNode node in element.ChildNodes)
-            // convert childs of "alive" node to 
-            parameters[0] += node.OuterXml + '\n';
-          template = "alive.msg";
+          retval = BMessageAlive.LoadFromXml(element["alive"]);
+//          element = element["alive"];
+//          parameters = new string[1];
+//          parameters[0] = "";
+//          foreach (XmlNode node in element.ChildNodes)
+//            // convert childs of "alive" node to 
+//            parameters[0] += node.OuterXml + '\n';
+//          template = "alive.msg";
         }
         else if (element["run"] != null)
         { // "run" message
-          element = element["run"];
-          attribute = element.Attributes["procedure"];
-          string procedure = (attribute != null ? attribute.Value : "");
-          parameters = new string[2];
-          parameters[0] = procedure;
-          parameters[1] = "";
-          foreach (XmlNode node in element.ChildNodes)
-            // convert childs of "run" node to 
-            parameters[1] += node.OuterXml + '\n';
-          template = "run.msg";
+          retval = BMessageRun.LoadFromXml(element["run"]);
+//          element = element["run"];
+//          attribute = element.Attributes["procedure"];
+//          string procedure = (attribute != null ? attribute.Value : "");
+//          parameters = new string[2];
+//          parameters[0] = procedure;
+//          parameters[1] = "";
+//          foreach (XmlNode node in element.ChildNodes)
+//            // convert childs of "run" node to 
+//            parameters[1] += node.OuterXml + '\n';
+//          template = "run.msg";
         }
         else if (element["getstatus"] != null)
         { // "getstatus" message
-          parameters = new string[0];
-          template = "getstatus.msg";
+          retval = BMessageSimpleCommand.LoadFromXml(element["getstatus"]);
+//          parameters = new string[0];
+//          template = "getstatus.msg";
         }
         else if (element["stop"] != null)
         { // "stop" message
-          parameters = new string[0];
-          template = "stop.msg";
+          retval = BMessageSimpleCommand.LoadFromXml(element["stop"]);
+//          parameters = new string[0];
+//          template = "stop.msg";
         }
         else if (element["end"] != null)
         { // "end" message
-          parameters = new string[0];
-          template = "end.msg";
+          retval = BMessageSimpleCommand.LoadFromXml(element["end"]);
+//          parameters = new string[0];
+//          template = "end.msg";
         }
         else throw new XmlException("Bad message format.");
-        
-        // create instance of default master's command
-        return new BMessage(template, parameters, BEnumCommands.BCommDefault);
       }
       else if (element["slaves"] != null)
       { // message form slave       
         element = element["slaves"];
         if (element["status"] != null)
         {
-          element = element["complete"];
-          attribute = element.Attributes["complete"];
-          string complete = (attribute != null ? attribute.Value : "0");
-          element = element["notice"];
-          string notice = (element != null ? element.Value : "");
-          parameters = new string[2];
-          parameters[0] = complete;
-          parameters[1] = notice;
-          template = "status.msg";
+          retval = BMessageStatus.LoadFromXml(element["status"]);
+//          element = element["complete"];
+//          attribute = element.Attributes["complete"];
+//          string complete = (attribute != null ? attribute.Value : "0");
+//          element = element["notice"];
+//          string notice = (element != null ? element.Value : "");
+//          parameters = new string[2];
+//          parameters[0] = complete;
+//          parameters[1] = notice;
+//          template = "status.msg";
         }
         else if (element["return"] != null)
         {
-          element = element["return"];
-          attribute = element.Attributes["status"];
-          string status = (attribute != null ? attribute.Value : "0");
-          parameters = new string[2];
-          parameters[0] = status;
-          parameters[1] = "";
-          foreach (XmlNode node in element.ChildNodes)
-            // convert childs of "run" node to 
-            parameters[1] += node.OuterXml + '\n';
-          template = "return.msg";
+          retval = BMessageReturn.LoadFromXml(element["return"]);
+//          element = element["return"];
+//          attribute = element.Attributes["status"];
+//          string status = (attribute != null ? attribute.Value : "0");
+//          parameters = new string[2];
+//          parameters[0] = status;
+//          parameters[1] = "";
+//          foreach (XmlNode node in element.ChildNodes)
+//            // convert childs of "run" node to 
+//            parameters[1] += node.OuterXml + '\n';
+//          template = "return.msg";
         }
         else if (element["question"] != null)
         {
-          element = element["question"];
-          // has only one children
-          XmlNode child = element.FirstChild;
-          parameters = new string[1];
-          parameters[0] = child.OuterXml;
-
-          template = "question.msg";
+          retval = BMessageQuestion.LoadFromXml(element["question"]);
+//          element = element["question"];
+//          // has only one children
+//          XmlNode child = element.FirstChild;
+//          parameters = new string[1];
+//          parameters[0] = child.OuterXml;
+//
+//          template = "question.msg";
         }
         else throw new XmlException("Bad message format.");
-        
-        // create return message and return it
-        BMessage retval = new BMessage(template, parameters, BEnumCommands.BCommReturnValue);
-        retval.IdFrom = messageFrom;
-        retval.IdTo = messageTo;
-        return retval;
       }
-      else throw new XmlException("Bad message format.");
+      else throw new XmlException("Bad message format.");    
+              
+      // create return message and return it
+      retval.IdFrom = messageFrom;
+      retval.IdTo = messageTo;
+      return retval;
     }
     
-    // Constructor of status message
-    public static BMessage CreateStatus (int aComplete, string aNotice)
+    /// <summary>
+    /// Constructor of status message
+    /// </summary>
+    /// <param name="complete">Percent complete</param>
+    /// <param name="notice"></param>
+    /// <returns></returns>
+    public static BMessage CreateStatus (int complete, string notice)
     {
-      if (aComplete < 0) aComplete = 0;
-      if (aComplete > 100) aComplete = 100;
-      
-      string[] parameters = new string[2];
-      parameters[0] = aComplete.ToString();
-      parameters[1] = aNotice;
-      
-      return new BMessage("status.msg", parameters, BEnumCommands.BCommReturnValue); 
+      return new BMessageStatus(complete, notice);
     }
     
-    // Constructor of return message
-    public static BMessage CreateReturn (int aStatus, string aResult)
+    /// <summary>
+    /// Constructor of return message
+    /// </summary>
+    /// <param name="status">Status of last operation.</param>
+    /// <param name="result">Result of last operation.</param>
+    /// <returns></returns>
+    public static BMessage CreateReturn (int status, string result)
     {
-      if (aStatus < 0) aStatus = 0;
-      
-      string[] parameters = new string[2];
-      parameters[0] = aStatus.ToString();
-      parameters[1] = aResult;
-      
-      return new BMessage("return.msg", parameters, BEnumCommands.BCommReturnValue);
+      return new BMessageReturn(status, result);
     }
-    
+  
+    /// <summary>
     /// Constructor of question message
+    /// </summary>
+    /// <param name="innerMessage">Question XML message compliant to a DTD libbeline.msg.dtd</param>
+    /// <returns></returns>
     public static BMessage CreateQuestion (string innerMessage)
     {
-      string[] parameters = new string[1];
-      parameters[0] = innerMessage;
-      
-      return new BMessage("question.msg", parameters, BEnumCommands.BCommReturnValue);
+      return new BMessageQuestion(innerMessage);
     }
     
     /// <summary>Constructor of alive message</summary>
-    /// <param aModuleFrom="OID of sending module" />
-    /// <param aModuleTo="OID of receiving module" />
-    /// <param aConfiguration="Configuration items" />  
+    /// <param name="aConfiguration">Configuration items"</param>
     public static BMessage CreateAlive (BValueType[] aConfiguration)
     {
-      string[] parameters = new string[1];
-      StringBuilder tmpStr = new StringBuilder(1000);
-      foreach (BValueType hodnota in aConfiguration)
-      {
-        tmpStr.Append(BValueType.Serialize(hodnota));
-        tmpStr.Append('\n');
-      }
-      parameters[0] = tmpStr.ToString();
-      
-      return new BMessage("alive.msg", parameters, BEnumCommands.BCommDefault);
+      return new BMessageAlive(aConfiguration);
     }
-    
-    // Constructor of run message
-    public static BMessage CreateRun (string aProcedure, BValueType[] aParameters)
+
+    /// <summary>
+    /// Constructor of run message
+    /// </summary>
+    /// <param name="procedure">Name of procedure to run.</param>
+    /// <param name="parameters">Array of parameters.</param>
+    /// <returns></returns>
+    public static BMessage CreateRun (string procedure, BValueType[] parameters)
     {
-      string[] parameters = new string[2];
-      parameters[0] = aProcedure;
-      StringBuilder tmpStr = new StringBuilder(1000);
-      foreach (BValueType hodnota in aParameters)
-      {
-        tmpStr.Append(BValueType.Serialize(hodnota));
-        tmpStr.Append('\n');
-      }
-      parameters[1] = tmpStr.ToString();
-      
-      return new BMessage("run.msg", parameters, BEnumCommands.BCommDefault);
+      return new BMessageRun(procedure, parameters);
     }
-    
-    // Constructor of getstatus, stop a end message
-    public static BMessage CreateSimpleCommand (string aTemplate)
+
+    /// <summary>
+    /// Constructor of getstatus, stop a end message
+    /// </summary>
+    /// <param name="template">Template of simple message</param>
+    /// <returns></returns>
+    public static BMessage CreateSimpleCommand (string template)
     {
-      if (aTemplate != "getstatus.msg" && aTemplate != "stop.msg" && aTemplate != "end.msg")
-        throw new ArgumentException("No message from given template: " + aTemplate);
+      if (template != "getstatus.msg" && template != "stop.msg" && template != "end.msg")
+        throw new ArgumentException("No message from given template: " + template);
         
-      string[] parameters = new string[0];
-      
-      return new BMessage(aTemplate, parameters, BEnumCommands.BCommDefault);
+      return new BMessageSimpleCommand(template);
     }
     
-    // Return message (as return value as command) as string value   
-    public override string ToString()
+    /// <summary>Create return value with error message</summary>
+    /// <param name="aMessage">Error message for user</param>
+    /// <param name="aStatus">Nonzero return status of last program's run</param>
+    public static BMessage CreateException(string aMessage, int aStatus)
     {
-      string retval = BTemplates.GetInstance().ReadTemplate(template);
-      retval = String.Format(template, idFrom, idTo, parameters);
-      return retval;
+      if (aStatus == 0) aStatus = 1;
+      
+      string message = "<retval><item description=\"error\"><string><text lang=\"cz\">" + aMessage + 
+        "</text></string></bretval></retval>";
+      return CreateReturn(aStatus, message);
+    }
+    
+    /// <summary>Create return value with error message with default status 1</summary>
+    /// <param name="aMessage">Error message for user</param>
+    public static BMessage CreateException(string aMessage)
+    {
+      return CreateException(aMessage, 1);
     }
   } // class BMessage
+  
+  /// <summary>
+  /// Class representation of alive message
+  /// </summary>
+  public sealed class BMessageAlive : BMessage
+  {
+    // Configuration of module (a content of the alive element)
+    public BValueType[] Configuration
+    {
+      get
+      {
+        return configuration;
+      }
+    }
+    private BValueType[] configuration;
+    
+    /// Create new instance of Alive message
+    public BMessageAlive(BValueType[] configuration) : base ("alive.msg", BEnumCommands.BCommDefault)
+    {
+      this.configuration = configuration;
+    }
+    
+    public static BMessage LoadFromXml(XmlNode aliveNode)
+    {
+      BValueType[] tmpConfiguration = new BValueType[aliveNode.ChildNodes.Count];
+      int i = 0;  // iterator
+      
+      foreach (XmlNode node in aliveNode.ChildNodes)
+        // convert childs of "alive" node to
+        tmpConfiguration[i++] = BValueType.Deserialize(node);
+      
+      return new BMessageAlive(tmpConfiguration);
+    }
+    
+    public override string ToString()
+    {
+      string retval = BTemplates.GetInstance().ReadTemplate(Template);
+      
+      StringBuilder tmpStr = new StringBuilder(1000);
+      foreach (BValueType hodnota in configuration)
+      {
+        tmpStr.Append(BValueType.Serialize(hodnota));
+        tmpStr.Append('\n');
+      }
+      
+      retval = String.Format(retval, IdFrom, IdTo, tmpStr.ToString());
+      return retval;
+    }
+  }
+  
+  /// <summary>
+  /// Class representation of question message
+  /// </summary>
+  public sealed class BMessageQuestion : BMessage
+  {
+    public string InnerMessage
+    {
+      get { return innerMessage; }
+    }
+    private string innerMessage;
+    
+    public BMessageQuestion(string innerMessage) : base ("question.msg", BEnumCommands.BCommReturnValue)
+    {
+      this.innerMessage = innerMessage;
+    }
+    
+    public static BMessage LoadFromXml(XmlNode questionNode)
+    {
+      string tmpInner = "";
+      
+      // has only one children
+      XmlNode child = questionNode.FirstChild;
+      tmpInner = child.OuterXml;
+
+      return new BMessageQuestion(tmpInner);
+    }
+    
+    /// <summary>
+    /// Overrided. Return string representation of message
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+      string retval = BTemplates.GetInstance().ReadTemplate(Template);
+      retval = String.Format(retval, IdFrom, IdTo, innerMessage);
+      return retval;
+    }
+  }
+    
+  /// <summary>
+  /// Class representation of return message
+  /// </summary>
+  public sealed class BMessageReturn : BMessage
+  {
+    public int Status
+    {
+      get { return status; }
+    }
+    private int status;
+    
+    public string Result
+    {
+      get { return result; }
+    }
+    private string result;
+    
+    public BMessageReturn(int status, string result) : base ("return.msg", BEnumCommands.BCommReturnValue)
+    {
+      if (status < 0) status = 0;
+
+      this.status = status;
+      this.result = result;
+    }
+    
+    public static BMessage LoadFromXml(XmlNode returnNode)
+    {
+      XmlElement element;   // working variable
+      XmlAttribute attribute; // working variable
+      string tmpStatus = "";
+      string tmpResult = "";
+      
+      element = (XmlElement)returnNode;
+      attribute = element.Attributes["status"];
+      tmpStatus = (attribute != null ? attribute.Value : "0");
+      // get the whole return element (to avoid multiple root elements)
+      tmpResult = element.OuterXml;
+      
+      return new BMessageReturn(Convert.ToInt32(tmpStatus), tmpResult);
+    }
+    
+    /// <summary>
+    /// Overrided. Return string representation of message
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+      string retval = BTemplates.GetInstance().ReadTemplate(Template);
+      retval = String.Format(retval, IdFrom, IdTo, status, result);
+      return retval;
+    }      
+  }
+  
+  /// <summary>
+  /// Class representation of run message
+  /// </summary>
+  public sealed class BMessageRun : BMessage
+  {
+    public string Procedure
+    {
+      get { return procedure; }
+    }
+    private string procedure;
+    
+    public BValueType[] Parameters
+    {
+      get { return parameters; }
+    }
+    private BValueType[] parameters;
+    
+    public BMessageRun(string procedure, BValueType[] parameters) : base("run.msg", BEnumCommands.BCommDefault)
+    {
+      this.procedure = procedure;
+      this.parameters = parameters;
+    }
+    
+    public static BMessage LoadFromXml(XmlNode runNode)
+    {
+      XmlElement element;   // working variable
+      XmlAttribute attribute; // working variable
+      string tmpProcedure = "";
+      BValueType[] tmpParameters = new BValueType[runNode.ChildNodes.Count];
+      int i=0;  // iterator
+      
+      element = (XmlElement)runNode;
+      attribute = element.Attributes["procedure"];
+      tmpProcedure = (attribute != null ? attribute.Value : "");
+      foreach (XmlNode node in element.ChildNodes)
+        // convert childs of "run" node to 
+        tmpParameters[i++] = BValueType.Deserialize(node);
+        
+      return new BMessageRun(tmpProcedure, tmpParameters);
+    }
+      
+    /// <summary>
+    /// Overrided. Return string representation of message
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+      string retval = BTemplates.GetInstance().ReadTemplate(Template);
+      
+      StringBuilder tmpStr = new StringBuilder(1000);
+      foreach (BValueType hodnota in parameters)
+      {
+        tmpStr.Append(BValueType.Serialize(hodnota));
+        tmpStr.Append('\n');
+      }
+      
+      retval = String.Format(retval, IdFrom, IdTo, procedure, tmpStr.ToString());
+      return retval;
+    }
+  }
+  
+  /// <summary>
+  /// Class representation of simple command message
+  /// </summary>
+  public sealed class BMessageSimpleCommand : BMessage
+  {
+    public BMessageSimpleCommand(string template) : base (template, BEnumCommands.BCommDefault)
+    {}
+    
+    public static BMessage LoadFromXml(XmlNode simpleNode)
+    {
+      string templateName;
+      switch (simpleNode.LocalName)
+      {
+        case "getstatus":
+          templateName = "getstatus.msg";
+          break;
+        case "stop":
+          templateName = "stop.msg";
+          break;
+        default:
+          templateName = "end.msg";
+          break;
+      }
+      
+      return new BMessageSimpleCommand(templateName);
+    }
+    
+    /// <summary>
+    /// Overrided. Return string representation of message
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+      string retval = BTemplates.GetInstance().ReadTemplate(Template);
+      
+      retval = String.Format(retval, IdFrom, IdTo);
+      return retval;
+    }
+  }
+  
+  /// <summary>
+  /// Class representation of status message
+  /// </summary>
+  public sealed class BMessageStatus : BMessage
+  {
+    public int Complete
+    {
+      get { return complete; }
+    }
+    private int complete;
+    
+    public string Notice
+    {
+      get { return notice; }
+    }
+    private string notice;
+    
+    public BMessageStatus(int complete, string notice) : base ("status.msg", BEnumCommands.BCommReturnValue)
+    {
+      if (complete < 0) complete = 0;
+      if (complete > 100) complete = 100;
+      
+      this.complete = complete;
+      this.notice = notice;
+    }
+    
+    public static BMessage LoadFromXml(XmlNode runNode)
+    {
+      XmlElement element;   // working variable
+      XmlAttribute attribute; // working variable
+      string tmpComplete = "";
+      string tmpNotice = "";
+      
+      element = (XmlElement)runNode;
+      attribute = element.Attributes["percent"];
+      tmpComplete = (attribute != null ? attribute.Value : "0");
+      element = element["notice"];
+      tmpNotice = (element != null ? element.InnerText : "");
+
+      return new BMessageStatus(Convert.ToInt32(tmpComplete), tmpNotice);
+    }
+      
+    /// <summary>
+    /// Overrided. Return string representation of message
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+      string retval = BTemplates.GetInstance().ReadTemplate(Template);
+      
+      retval = String.Format(retval, IdFrom, IdTo, complete, notice);
+      return retval;
+    }
+  }
 } // namespace
 

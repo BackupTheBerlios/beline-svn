@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<beline>
+<message modulefrom="gbeline" moduleto="cpuinfo">
+  <masters>
+    <getstatus />
+  </masters>
+</message>
+</beline>

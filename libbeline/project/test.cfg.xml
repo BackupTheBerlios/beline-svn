@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<bel:beline xmlns:bel="http://www.berlios.de/xml/1.0/beline.msg.dtd">
+  <bel:message>
+    <bel:masters>
+      <bel:getstatus />
+    </bel:masters>
+  </bel:message>
+</bel:beline>

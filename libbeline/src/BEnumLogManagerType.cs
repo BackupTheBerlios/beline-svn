@@ -1,15 +1,19 @@
 using System;
 
 namespace LibBeline {
-  /// Seznam typů logovacích manažerů
+  /// <summary>Enumeration messages managers types.</summary>
   public enum BEnumLogManagerType {
-
-    // Attributes
-    /// 
+    /// <summary>
+    /// Store messages to a file.
+    /// </summary>
     File = 1,
-    /// 
+    /// <summary>
+    /// Send messages via e-mail.
+    /// </summary>
     Mail = 2,
-    /// 
+    /// <summary>
+    /// Store messages to syslog.
+    /// </summary>
     Syslog = 3
   } // class BEnumLogManagerType
 } // namespace

@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <beline>
-  <message modulefrom="{1}" moduleto="{2}">
+  <message modulefrom="{0}" moduleto="{1}">
     <slaves>
-      <status percent="{3}">
+      <status percent="{2}">
         <notice>
-          {4}
+          {3}
         </notice>
       </status>
     </slaves>

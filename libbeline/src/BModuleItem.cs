@@ -53,11 +53,11 @@ namespace LibBeline {
         BConfigItem configItem = configManager.LoadModuleConfig(aFileName);
         // store some frequently used properties
         configOID = configItem.OID;
-        name = configItem["/beline/conf/module[name]"].ToString();
-        version = new BVersion(configItem["/beline/conf/module[version]"].ToString());
-        author = configItem["/beline/conf/module/author[name]"].ToString() + " <" + 
-                 configItem["/beline/conf/module/author[email]"].ToString() + ">";
-        description = configItem["/beline/conf/module[description]"].ToString();
+        name = configItem["/beline/conf/module[@name]"].ToString();
+        version = new BVersion(configItem["/beline/conf/module[@version]"].ToString());
+        author = configItem["/beline/conf/module/author[@name]"].ToString() + " <" + 
+                 configItem["/beline/conf/module/author[@email]"].ToString() + ">";
+        description = configItem["/beline/conf/module[@description]"].ToString();
       }
       catch (System.Xml.XmlException e)
       {

@@ -1,13 +1,15 @@
 using System;
 
 namespace LibBeline {
-  /// Určuje jestli se jedná o modul řídící (zobrazovací), nebo jen výkonný
+  /// <summary>Enumeration of states of libbeline.</summary>
   public enum BEnumSystem {
-
-    // Attributes
-    /// Pro řídící moduly
+    /// <summary>
+    /// Master's state in the central application.
+    /// </summary>
     master = 1,
-    /// Pro výkonné moduly
+    /// <summary>
+    /// Slave's state in a module.
+    /// </summary>
     slave = 2
   } // enum BEnumSystem
 } // namespace

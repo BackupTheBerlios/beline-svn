@@ -9,8 +9,6 @@ namespace Beline.Gui
   public class AboutWindow: Gtk.Window
   {
     [Widget] Gtk.VBox AboutTopBox;
-  	[Widget] Gtk.Image imgLogo;
-  	[Widget] Gtk.Button btnClose;
   	[Widget] Gtk.Label lblName;
   	[Widget] Gtk.Label lblInfo;
   	[Widget] Gtk.Label lblCopyright;

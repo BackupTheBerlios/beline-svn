@@ -1,0 +1,16 @@
+<Combine name="cpuinfo" fileversion="2.0">
+  <Configurations>
+    <Configuration name="Debug" ctype="CombineConfiguration">
+      <Entry build="True" name="cpuinfo" />
+    </Configuration>
+    <Configuration name="Release" ctype="CombineConfiguration">
+      <Entry build="True" name="cpuinfo" />
+    </Configuration>
+  </Configurations>
+  <StartMode startupentry="cpuinfo" single="True">
+    <Execute type="None" entry="cpuinfo" />
+  </StartMode>
+  <Entries>
+    <Entry filename="./cpuinfo.mdp" />
+  </Entries>
+</Combine>

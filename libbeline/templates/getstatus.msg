@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <beline>
-  <message modulefrom="{1}" moduleto="{2}">
+  <message modulefrom="{0}" moduleto="{1}">
     <masters>
       <getstatus />
     </masters>

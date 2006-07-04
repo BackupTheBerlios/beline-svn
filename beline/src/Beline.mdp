@@ -20,8 +20,8 @@
     <ProjectReference type="Gac" localcopy="True" refto="glade-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <ProjectReference type="Gac" localcopy="True" refto="pango-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <ProjectReference type="Gac" localcopy="True" refto="glade-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <ProjectReference type="Assembly" localcopy="True" refto="../../../../../kowy/Projects/libbeline/src/bin/Release/LibBeline.dll" />
     <ProjectReference type="Gac" localcopy="True" refto="gtkhtml-sharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <ProjectReference type="Assembly" localcopy="True" refto="../../../../skola/6.rocnik/diplomka/libbeline/src/bin/Release/LibBeline.dll" />
   </References>
   <DeploymentInformation strategy="File">
     <excludeFiles />
@@ -39,5 +39,8 @@
     <File name="./gui/Dialogs/Simple.cs" subtype="Code" buildaction="Compile" />
     <File name="./gui/ContextMenu.cs" subtype="Code" buildaction="Compile" />
     <File name="./glade/beline.glade" subtype="Code" buildaction="EmbedAsResource" />
+    <File name="./tools/XmlTools.cs" subtype="Code" buildaction="Compile" />
+    <File name="./tools/GtkHtmlHtmlRender.cs" subtype="Code" buildaction="Compile" />
+    <File name="./tools/IHtmlRender.cs" subtype="Code" buildaction="Compile" />
   </Contents>
 </Project>
